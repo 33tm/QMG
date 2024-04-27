@@ -8,13 +8,16 @@
 
 typedef struct Header {
     uint16_t magic;
-    unsigned char v0[4];
+    uint8_t major, minor, patch;
+    uint8_t repeat;
     uint16_t width, height;
-    unsigned char v1[6];
+    uint16_t unknown; // same phone same value
+    uint16_t unknown2;
+    unsigned char v1[2];
     uint16_t total, current;
     unsigned char v2[4];
     uint32_t size;
-    unsigned char v3[4];
+    uint32_t size2;
 } Header;
 
 int main(int argc, char *argv[]) {
