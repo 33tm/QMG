@@ -1,0 +1,4 @@
+*.out
+*.qmg
+output
+.vscode
