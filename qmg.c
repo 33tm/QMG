@@ -82,11 +82,11 @@ int main(int argc, char *argv[]) {
         char *filename = malloc(32 * sizeof(char));
         sprintf(filename, "output/%d.qmg", header->current);
 
-        FILE *output = fopen(filename, "wb");
+        FILE *frame = fopen(filename, "wb");
         free(filename);
 
-        fwrite(body, 1, length, output);
-        fclose(output);
+        fwrite(body, 1, length, frame);
+        fclose(frame);
 
         free(body);
 

@@ -1,4 +1,6 @@
-*.out
+qmg
 *.qmg
+*.out
 output
 .vscode
+.idea
