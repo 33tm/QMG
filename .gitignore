@@ -1,6 +1,7 @@
-qmg
 *.qmg
 *.out
+build
+cmake-build-debug
 output
 .vscode
 .idea
