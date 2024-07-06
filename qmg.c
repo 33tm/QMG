@@ -2,8 +2,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <ftw.h>
 
 #define QM 0x4D51
 
@@ -16,14 +14,10 @@ typedef struct Header {
     uint16_t unknown2;
     unsigned char v1[2];
     uint16_t total, current;
-    unsigned char v2[4];
+    uint32_t duration;
     uint32_t size;
     uint32_t size2;
 } Header;
-
-int rm(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
-    return remove(fpath);
-}
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -38,21 +32,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    struct stat qmg;
-    stat(argv[1], &qmg);
-    size_t size = qmg.st_size;
+    fseek(file, 0, SEEK_END);
+    size_t size = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
-    char *buffer = malloc(size * sizeof(char));
+    char *buffer = malloc(size);
     fread(buffer, 1, size, file);
     fclose(file);
-
-    struct stat output;
-    stat("output", &output);
-
-    if (S_ISDIR(output.st_mode))
-        nftw("output", rm, 64, FTW_DEPTH | FTW_PHYS);
-
-    mkdir("output", 0755);
 
     size_t offset = 0;
 
@@ -76,17 +62,8 @@ int main(int argc, char *argv[]) {
 
         length -= sizeof(Header);
 
-        char *body = malloc(length * sizeof(char));
+        char *body = malloc(length);
         memcpy(body, buffer + offset + sizeof(Header), length);
-
-        char *filename = malloc(32 * sizeof(char));
-        sprintf(filename, "output/%d.qmg", header->current);
-
-        FILE *frame = fopen(filename, "wb");
-        free(filename);
-
-        fwrite(body, 1, length, frame);
-        fclose(frame);
 
         free(body);
 
