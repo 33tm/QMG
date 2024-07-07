@@ -7,14 +7,16 @@
 
 typedef struct Header {
     uint16_t magic;
-    uint8_t major, minor, patch;
-    uint8_t repeat;
-    uint16_t width, height;
-    uint16_t unknown; // same phone same value
+    uint32_t unknown1;
+    uint16_t width;
+    uint16_t height;
     uint16_t unknown2;
-    unsigned char v1[2];
-    uint16_t total, current;
-    uint32_t duration;
+    uint16_t unknown3;
+    uint16_t unknown4;
+    uint16_t total;
+    uint16_t current;
+    uint16_t duration;
+    uint16_t repeat;
     uint32_t size;
     uint32_t size2;
 } Header;
