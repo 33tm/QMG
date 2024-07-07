@@ -67,8 +67,6 @@ int main(int argc, char *argv[]) {
         char *body = malloc(length);
         memcpy(body, buffer + offset + sizeof(Header), length);
 
-        printf("Length: %lu\n", length);
-
         for (int i = 0; i < length; i++) {
             printf("%02hhx ", body[i]);
         }
