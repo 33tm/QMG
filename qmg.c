@@ -57,17 +57,23 @@ int main(int argc, char *argv[]) {
         size_t length = header->size;
         Header *next = (Header *)(buffer + offset + length);
 
-        if (header->current != header->total) {
-            while (next->magic != QM) {
-                length++;
-                next = (Header *)(buffer + offset + length);
-            }
+        while (next->magic != QM && offset + length < size) {
+            length++;
+            next = (Header *)(buffer + offset + length);
         }
 
         length -= sizeof(Header);
 
         char *body = malloc(length);
         memcpy(body, buffer + offset + sizeof(Header), length);
+
+        printf("Length: %lu\n", length);
+
+        for (int i = 0; i < length; i++) {
+            printf("%02hhx ", body[i]);
+        }
+
+        printf("\n\n");
 
         free(body);
 
