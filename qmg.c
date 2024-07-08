@@ -5,11 +5,11 @@
 
 #define QM 0x4D51
 
+#pragma pack(push, 1)
+
 typedef struct Header {
     uint16_t magic;
-    uint8_t unknown;
-    uint8_t unknown1;
-    uint8_t unknown2;
+    uint32_t version;
     uint16_t width;
     uint16_t height;
     uint16_t unknown3;
@@ -20,8 +20,10 @@ typedef struct Header {
     uint16_t duration;
     uint16_t repeat;
     uint32_t size;
-    uint32_t size2;
+    uint32_t fullsize;
 } Header;
+
+#pragma pack(pop)
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
