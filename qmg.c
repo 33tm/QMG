@@ -56,30 +56,28 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        size_t length = header->size;
-        Header *next = (Header *)(buffer + offset + length);
+        header->size -= sizeof(Header);
 
-        while (next->magic != QM && offset + length < size) {
-            length++;
-            next = (Header *)(buffer + offset + length);
-        }
+        char *base = buffer + offset + sizeof(Header);
 
-        length -= sizeof(Header);
+        size_t extra = 0;
+        Header *next = (Header *)(base + header->size + extra);
 
-        char *body = malloc(length);
-        memcpy(body, buffer + offset + sizeof(Header), length);
+        while (next->magic != QM && offset + sizeof(Header) + header->size + extra < size)
+            next = (Header *)(base + header->size + ++extra);
 
-        for (int i = 0; i < length; i++) {
-            printf("%02hhx ", body[i]);
-        }
+        char *body = malloc(header->size);
+        memcpy(body, base, header->size);
 
-        printf("\n\n");
+        char *footer = malloc(extra);
+        memcpy(footer, base + header->size, extra);
 
         free(body);
+        free(footer);
 
         if (header->current == header->total) break;
 
-        offset += length + sizeof(Header);
+        offset += header->size + extra + sizeof(Header);
     }
 
     free(buffer);
