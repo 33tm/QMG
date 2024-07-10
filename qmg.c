@@ -12,9 +12,9 @@ typedef struct Header {
     uint32_t version;
     uint16_t width;
     uint16_t height;
+    uint16_t unknown1;
+    uint16_t unknown2;
     uint16_t unknown3;
-    uint16_t unknown4;
-    uint16_t unknown5;
     uint16_t total;
     uint16_t current;
     uint16_t duration;
