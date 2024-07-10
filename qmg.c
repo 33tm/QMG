@@ -47,9 +47,12 @@ int main(int argc, char *argv[]) {
     fclose(file);
 
     size_t offset = 0;
+    Header *header = (Header *)buffer;
 
-    while (1) {
-        Header *header = (Header *)(buffer + offset);
+    char *framebuffer = malloc(header->width * header->height);
+
+    while (header->current != header->total) {
+        header = (Header *)(buffer + offset);
 
         if (header->magic != QM) {
             fprintf(stderr, "Malformed QMG Header!\n");
@@ -69,17 +72,16 @@ int main(int argc, char *argv[]) {
         char *body = malloc(header->size);
         memcpy(body, base, header->size);
 
-        char *footer = malloc(extra);
-        memcpy(footer, base + header->size, extra);
+        char *palette = malloc(extra);
+        memcpy(palette, base + header->size, extra);
 
         free(body);
-        free(footer);
-
-        if (header->current == header->total) break;
+        free(palette);
 
         offset += header->size + extra + sizeof(Header);
     }
 
+    free(framebuffer);
     free(buffer);
 
     return 0;
