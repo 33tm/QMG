@@ -52,25 +52,33 @@ typedef struct {
 #pragma pack(pop)
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <qmg>\n", argv[0]);
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <qmg> <audio>\n", argv[0]);
         return 1;
     }
 
-    FILE *file = fopen(argv[1], "rb");
+    FILE *qmg = fopen(argv[1], "rb");
+    FILE *audio = fopen(argv[2], "r");
 
-    if (!file) {
+    if (!qmg) {
         fprintf(stderr, "Failed to open %s\n", argv[1]);
         return 1;
     }
 
-    fseek(file, 0, SEEK_END);
-    size_t size = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    if (!audio) {
+        fprintf(stderr, "Failed to open %s\n", argv[2]);
+        return 1;
+    }
+
+    fclose(audio);
+
+    fseek(qmg, 0, SEEK_END);
+    size_t size = ftell(qmg);
+    fseek(qmg, 0, SEEK_SET);
 
     char *buffer = malloc(size);
-    fread(buffer, 1, size, file);
-    fclose(file);
+    fread(buffer, 1, size, qmg);
+    fclose(qmg);
 
     QMG *current = (QMG *)buffer;
 
@@ -92,6 +100,7 @@ int main(int argc, char *argv[]) {
 
         char *body = malloc(current->size);
         memcpy(body, (char *)current + sizeof(QMG), current->size);
+        free(body);
 
         uint8_t *footer = malloc(extra);
         RGB888 *palette = malloc(extra / 2 * sizeof(RGB888));
@@ -103,6 +112,8 @@ int main(int argc, char *argv[]) {
             palette[i / 2].g = (rgb565 >> 5 & 0x3F) * 259 + 33 >> 6;
             palette[i / 2].r = (rgb565 >> 11 & 0x1F) * 527 + 23 >> 6;
         }
+
+        free(footer);
 
         BMP bmp;
         bmp.type = BM;
@@ -132,22 +143,33 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        char filename[16];
-        sprintf(filename, "output/%d.bmp", current->frame);
+        free(frame);
+        free(palette);
+
+        char *filename;
+        asprintf(&filename, "output/%d.bmp", current->frame);
         FILE *output = fopen(filename, "wb");
+        free(filename);
+
         fwrite(&bmp, sizeof(BMP), 1, output);
         fwrite(frame, 3, current->width * current->height, output);
         fclose(output);
-
-        free(body);
-        free(footer);
-        free(palette);
-        free(frame);
 
         current = (QMG *)((char *)current + current->size + extra + sizeof(QMG));
     }
 
     free(buffer);
+
+    char *ffmpeg;
+    asprintf(
+        &ffmpeg,
+        "ffmpeg -r 12 -i 'output/%%d.bmp' -i %s -c:a aac -pix_fmt yuv420p -loglevel error output.mp4",
+        argv[2]
+    );
+
+    system(ffmpeg);
+
+    free(ffmpeg);
 
     return 0;
 }
