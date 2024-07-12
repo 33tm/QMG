@@ -1,4 +1,2 @@
-*.qmg
-*.out
-*.exe
-output
+*
+!qmg.c
