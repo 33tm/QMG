@@ -43,6 +43,12 @@ typedef struct {
     uint32_t significant;
 } BMP;
 
+typedef struct {
+    uint8_t b;
+    uint8_t g;
+    uint8_t r;
+} RGB888;
+
 #pragma pack(pop)
 
 int main(int argc, char *argv[]) {
@@ -87,16 +93,15 @@ int main(int argc, char *argv[]) {
         char *body = malloc(current->size);
         memcpy(body, (char *)current + sizeof(QMG), current->size);
 
-        char *footer = malloc(extra);
-        char *palette = malloc((extra / 2) * 3);
+        uint8_t *footer = malloc(extra);
+        RGB888 *palette = malloc(extra / 2 * sizeof(RGB888));
         memcpy(footer, (char *)current + sizeof(QMG) + current->size, extra);
 
         for (size_t i = 0; i < extra; i += 2) {
-            uint16_t rgb565;
-            memcpy(&rgb565, footer + i, 2);
-            palette[i / 2] = (((rgb565 >> 11) & 0x1F) * 255 + 15) / 31;
-            palette[i / 2 + 1] = (((rgb565 >> 5) & 0x3F) * 255 + 31) / 63;
-            palette[i / 2 + 2] = ((rgb565 & 0x1F) * 255 + 15) / 31;
+            uint16_t rgb565 = *(uint16_t *)(&footer[i]);
+            palette[i / 2].b = (rgb565 & 0x1F) * 527 + 23 >> 6;
+            palette[i / 2].g = (rgb565 >> 5 & 0x3F) * 259 + 33 >> 6;
+            palette[i / 2].r = (rgb565 >> 11 & 0x1F) * 527 + 23 >> 6;
         }
 
         BMP bmp;
@@ -117,11 +122,13 @@ int main(int argc, char *argv[]) {
         bmp.palette = 0;
         bmp.significant = 0;
 
-        char *frame = malloc(current->width * current->height * 3);
+        RGB888 *frame = malloc(current->width * current->height * sizeof(RGB888));
 
         for (int y = 0; y < current->height; y++) {
             for (int x = 0; x < current->width; x++) {
-                memcpy(&frame[(y * current->width + x) * 3], &palette[extra / 2], 3);
+                RGB888 *pixel = &frame[y * current->width + x];
+                if (extra) *pixel = palette[0];
+                else *pixel = (RGB888){ 0, 0, 0 };
             }
         }
 
