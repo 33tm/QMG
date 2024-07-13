@@ -138,8 +138,7 @@ int main(int argc, char *argv[]) {
         for (int y = 0; y < current->height; y++) {
             for (int x = 0; x < current->width; x++) {
                 RGB888 *pixel = &frame[y * current->width + x];
-                if (extra) *pixel = palette[0];
-                else *pixel = (RGB888){ 0, 0, 0 };
+                *pixel = extra ? palette[0] : (RGB888) { 0, 0, 0 };
             }
         }
 
@@ -163,7 +162,7 @@ int main(int argc, char *argv[]) {
     char *ffmpeg;
     asprintf(
         &ffmpeg,
-        "ffmpeg -r 12 -i 'output/%%d.bmp' -i %s -c:a aac -pix_fmt yuv420p -loglevel error output.mp4",
+        "ffmpeg -r 12 -i 'output/%%d.bmp' -i %s -c:a copy -pix_fmt yuv420p -loglevel error output.mp4",
         argv[2]
     );
 
