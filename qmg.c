@@ -100,11 +100,38 @@ int main(int argc, char *argv[]) {
 
         uint8_t *body = malloc(current->size);
         memcpy(body, (char *)current + sizeof(QMG), current->size);
-        free(body);
+
+        char *filenametemp;
+        asprintf(&filenametemp, "output/%d.txt", current->frame);
+        FILE *frametemp = fopen(filenametemp, "w");
+        for (int i = 0; i < current->size; i++) {
+            if (body[i] == 0xff || body[i] == 0x7F || body[i] == 0xF7) {
+                if (body[i] == 0xff) fwrite(".", 1, 1, frametemp);
+                if (body[i] == 0x7f || body[i] == 0xf7) fwrite("\n", 1, 1, frametemp);
+            }
+            else fwrite("x", 1, 1, frametemp);
+        }
+
+        fwrite("\n\n", 2, 1, frametemp);
+
+        free(filenametemp);
 
         uint8_t *footer = malloc(extra);
         RGB888 *palette = malloc(extra / 2 * sizeof(RGB888));
         memcpy(footer, (char *)current + sizeof(QMG) + current->size, extra);
+
+        char *qmgfntemp;
+        asprintf(&qmgfntemp, "output/%d.qmg", current->frame);
+        FILE *qmgtemp = fopen(qmgfntemp, "wb");
+
+        fwrite(current, sizeof(QMG), 1, qmgtemp);
+        fwrite(body, current->size, 1, qmgtemp);
+        fwrite(footer, extra, 1, qmgtemp);
+
+        fclose(qmgtemp);
+        free(qmgfntemp);
+
+        free(body);
 
         for (size_t i = 0; i < extra; i += 2) {
             uint16_t rgb565 = *(uint16_t *)(&footer[i]);
@@ -112,6 +139,16 @@ int main(int argc, char *argv[]) {
             palette[i / 2].g = (rgb565 >> 5 & 0x3F) * 259 + 33 >> 6;
             palette[i / 2].r = (rgb565 >> 11 & 0x1F) * 527 + 23 >> 6;
         }
+
+        for (int i = 0; i < extra / 2; i++) {
+            RGB888 c = palette[i];
+            char *temp;
+            asprintf(&temp, "#%02x%02x%02x\n", c.r, c.g, c.b);
+            fwrite(temp, 8, 1, frametemp);
+            free(temp);
+        }
+
+        fclose(frametemp);
 
         free(footer);
 
