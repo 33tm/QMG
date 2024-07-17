@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 
         current->size -= sizeof(QMG);
 
-        char *body = malloc(current->size);
+        uint8_t *body = malloc(current->size);
         memcpy(body, (char *)current + sizeof(QMG), current->size);
         free(body);
 
