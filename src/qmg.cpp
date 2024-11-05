@@ -75,15 +75,23 @@ int main(int argc, char *argv[]) {
         ofstream colors("output/" + to_string(header->frame) + ".html");
         for (size_t i = 0; i < palette.size(); i++) {
             colors << "<div style=\"background-color: #" << hex << uppercase << setfill('0') << setw(2)
-                  << static_cast<uint16_t>(palette[i].r) << setfill('0') << setw(2)
-                  << static_cast<uint16_t>(palette[i].g) << setfill('0') << setw(2)
-                  << static_cast<uint16_t>(palette[i].b) << "\">" << dec << i << "</div>";
+                   << static_cast<uint16_t>(palette[i].r) << setfill('0') << setw(2)
+                   << static_cast<uint16_t>(palette[i].g) << setfill('0') << setw(2)
+                   << static_cast<uint16_t>(palette[i].b) << "\">" << dec << i << "</div>";
         }
 
-        RGB888 color = palette.empty() ? RGB888{0, 0, 0} : palette[0];
         auto *frame = new RGB888[header->width * header->height];
-        fill(frame, frame + header->width * header->height, color);
+        if (palette.empty()) {
+            fill(frame, frame + header->width * header->height, RGB888{0, 0, 0});
+        } else {
+            for (size_t i = 0; i < header->width; i++) {
+                for (size_t j = 0; j < header->height; j++) {
+                    frame[j * header->width + i] = palette[i % palette.size()];
+                }
+            }
+        }
         bmp(header->width, header->height, frame, "output/" + to_string(header->frame) + ".bmp");
+        delete[] frame;
 
         if (header->frame == header->total)
             break;
@@ -92,7 +100,8 @@ int main(int argc, char *argv[]) {
     }
 
     if (argc == 3)
-        system(("ffmpeg -r 12 -i output/%d.bmp -i " + string(argv[2]) + " -c:a copy -pix_fmt yuv420p -loglevel error output.mp4").c_str());
+        system(("ffmpeg -r 12 -i output/%d.bmp -i " + string(argv[2]) +
+                " -c:a copy -pix_fmt yuv420p -loglevel error output.mp4").c_str());
     else
         system("ffmpeg -r 12 -i output/%d.bmp -pix_fmt yuv420p -loglevel error output.mp4");
 
