@@ -84,9 +84,9 @@ int main(int argc, char *argv[]) {
         if (palette.empty()) {
             fill(frame, frame + header->width * header->height, RGB888{0, 0, 0});
         } else {
-            for (size_t i = 0; i < header->width; i++) {
-                for (size_t j = 0; j < header->height; j++) {
-                    frame[j * header->width + i] = palette[i % palette.size()];
+            for (size_t i = 0; i < header->height; i++) {
+                for (size_t j = 0; j < header->width; j++) {
+                    frame[i * header->width + j] = palette[j / (header->height / palette.size())];
                 }
             }
         }
